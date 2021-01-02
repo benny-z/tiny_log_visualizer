@@ -1,9 +1,9 @@
 // Mainly based on:
 // https://bl.ocks.org/cagrimmett/07f8c8daea00946b9e704e3efcbd5739 (GPL3)
 // and https://www.d3-graph-gallery.com/graph/interactivity_tooltip.html
-const margine = 200;
-const cellWidth = 20;
-const cellHeight = 20;
+const margine = 500;
+const cellWidth = 15;
+const cellHeight = 15;
 
 var hash_to_str_map = [];
 var gridWidth = screen.width - margine;
@@ -14,25 +14,25 @@ var g_gridData = null;
 function initGridData() {
     gridWidth = screen.width - margine;
     g_gridData = new Array();
-    var xpos = 1; 
-    var ypos = 1;
+    let xpos = 1; 
+    let ypos = 1;
 
     const numOfCells = hash_to_str_map.length;
     gridHeigh = numOfCells * cellWidth * cellHeight / gridWidth;
     const numOfRows = Math.floor(gridHeigh / cellHeight);
     const numOfColls = Math.floor(gridWidth / cellWidth);
    
-    for (var i = 0, row = 0; row < numOfRows; row++) {
+    for (let i = 0, row = 0; row < numOfRows; row++) {
         g_gridData.push( new Array() );
-        for (var column = 0; column < numOfColls; column++, ++i) {
-            var _style = 'fill: #' + (hash_to_str_map[i].h).toString(16);
+        for (let column = 0; column < numOfColls; column++, ++i) {
+            let _style = 'fill: #' + (hash_to_str_map[i].h).toString(16);
             g_gridData[row].push({
                 style: _style,
                 x: xpos,
                 y: ypos,
                 width: cellWidth,
                 height: cellHeight,
-                title: hash_to_str_map[i].s
+                title: "   " + hash_to_str_map[i].s
             })
             xpos += cellWidth;
         }
@@ -41,16 +41,14 @@ function initGridData() {
     }
 }
 
-function removeLoader(spinner) {
-    spinner.stop();
-    var target = document.getElementById('loader_id');
-    target.style.visibility = 'hidden';
+function removeLoader() {
+    let message = document.getElementById("message_to_user");
+    message.innerHTML = '';
 }
 
 function drawLoader() {
-    var target = document.getElementById('loader_id');
-    target.style.visibility = 'visible';
-    return new Spinner(opts).spin(target);
+    let message = document.getElementById("message_to_user");
+    message.innerHTML = 'Loading...';
 }
 
 function setTitle(filename){
@@ -63,17 +61,6 @@ function setTitle(filename){
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
-
-var opts = {
-  lines: 9, // The number of lines to draw
-  length: 9, // The length of each line
-  width: 5, // The line thickness
-  radius: 14, // The radius of the inner circle
-  color: '#EE3124', // #rgb or #rrggbb or array of colors
-  speed: 1.9, // Rounds per second
-  trail: 40, // Afterglow percentage
-  className: 'spinner', // The CSS class to assign to the spinner
-};
 
 function draw() {
     var tooltip = d3.select('body')
@@ -121,8 +108,8 @@ function draw() {
 
 function start(file) {
     const reader = new FileReader();
+    drawLoader();
     reader.onload = function(e) {
-        var spinner = drawLoader();
         let contents = e.target.result;
         for (const line of contents.split('\n')){
             if (line === ''){
@@ -134,7 +121,7 @@ function start(file) {
         initGridData();
         setTitle(file.name);
         draw();
-        removeLoader(spinner);
+        removeLoader();
     };
     reader.readAsText(file);
 }
