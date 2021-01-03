@@ -9,7 +9,5 @@ function calcHash32(input_str){
 }
 
 function str2color(input_str){
-    // let reg = /.*?\] 0x[0-9a-fA-F]*?:\t/g
-    // opcode = input_str.replace(reg, '');
     return calcHash32(input_str);
 }
