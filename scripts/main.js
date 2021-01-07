@@ -1,18 +1,17 @@
 // Mainly based on:
 // https://bl.ocks.org/cagrimmett/07f8c8daea00946b9e704e3efcbd5739 (GPL3)
 // and https://www.d3-graph-gallery.com/graph/interactivity_tooltip.html
-const margine = 500;
+const margine_factor = 0.6;
 const cellWidth = 15;
 const cellHeight = 15;
 
 var hash_to_str_map = [];
-var gridWidth = screen.width - margine;
+var gridWidth = d3.select('.container').node().getBoundingClientRect().width;
 var gridHeigh = 0;
 
 var g_gridData = null;
 
 function initGridData() {
-    gridWidth = screen.width - margine;
     g_gridData = new Array();
     let xpos = 1; 
     let ypos = 1;
@@ -25,13 +24,12 @@ function initGridData() {
     for (let i = 0, row = 0; row < numOfRows; row++) {
         g_gridData.push( new Array() );
         for (let column = 0; column < numOfColls; column++, ++i) {
-            let _style = 'fill: #' + (hash_to_str_map[i].h).toString(16);
             g_gridData[row].push({
-                style: _style,
+                fill: '#' + (hash_to_str_map[i].h).toString(16),
                 x: xpos,
                 y: ypos,
-                width: cellWidth,
-                height: cellHeight,
+                // width: cellWidth,
+                // height: cellHeight,
                 title: "   " + hash_to_str_map[i].s
             })
             xpos += cellWidth;
@@ -71,39 +69,32 @@ function draw() {
 
     var grid = d3.select('#grid')
         .append('svg')
-        .attr('width', (gridWidth + 3 /*making sure the rightmost border is visible */) + 'px')
-        .attr('height', (gridHeigh + 3 /*making sure the rightmost border is visible */) + 'px');
+        .attrs({'width' : gridWidth + 'px',
+                'height' : gridHeigh + 'px'});
 
     var row = grid.selectAll('.row')
         .data(g_gridData)
         .enter().append('g')
         .attr('class', 'row');
 
-    row.selectAll('.square')
-        .data(function(d) { return d; })
-        .enter()
-        .append('rect')
-        .attr('class', 'square')
-        .attr('x', function(d) { return d.x; })
-        .attr('y', function(d) { return d.y; })
-        .attr('content', function(d) { return d.content; })
-        .attr('style', function(d) { return d.style; })
-        .attr('width', function(d) { return d.width; })
-        .attr('height', function(d) { return d.height; })
-        .attr('title', function(d) { return d.title; })
-        .style('stroke', '#222')
-        .on('mouseover', function(d){
-            tooltip.text(d.title);
-            return tooltip.style('visibility', 'visible');
-        })
-        .on('mousemove', function(){
-            return tooltip
-                .style('top', (d3.event.pageY-10)+'px')
-                .style('left',(d3.event.pageX+10)+'px');
-        })
-        .on('mouseout', function(){
-            return tooltip.style('visibility', 'hidden');
-        });
+    function internalDraw(d) {
+        row.select('.square')
+            .data(d)
+            .enter()
+            .append('rect')
+            .attrs({
+                'class': 'square cell',
+                'x' : (d) => d.x,
+                'y' : (d) => d.y,
+                'title' : (d) => d.title
+            })
+            .style('fill', (d) => d.fill)
+            .on('mouseover', (d) => tooltip.text(d.title).style('visibility', 'visible'))
+            .on('mousemove', () => tooltip.styles({'top' : (d3.event.pageY-10)+'px','left' : (d3.event.pageX+10)+'px'}))
+            .on('mouseout', () => tooltip.style('visibility', 'hidden'));
+    }
+    var render = renderQueue(internalDraw);
+    render(g_gridData);
 }
 
 function start(file) {
@@ -120,6 +111,7 @@ function start(file) {
         }
         initGridData();
         setTitle(file.name);
+        d3.select('#grid').style('visibility', 'visible');
         draw();
         removeLoader();
     };
