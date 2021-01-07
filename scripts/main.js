@@ -1,49 +1,15 @@
 // Mainly based on:
 // https://bl.ocks.org/cagrimmett/07f8c8daea00946b9e704e3efcbd5739 (GPL3)
 // and https://www.d3-graph-gallery.com/graph/interactivity_tooltip.html
-const cellWidth = 15;
-const cellHeight = 15;
+const cellWidth = 15
+const cellHeight = 15
 
-var hash_to_str_map = [];
-var gridWidth = d3.select('.container').node().getBoundingClientRect().width;
-var gridHeigh = 0;
+const gGridWidth = d3.select('.container').node().getBoundingClientRect().width;
+var gGridHeigh = 0;
+var gGridData = null;
 
-var g_gridData = null;
-
-function initGridData() {
-    g_gridData = new Array();
-    let xpos = 1; 
-    let ypos = 1;
-
-    const numOfCells = hash_to_str_map.length;
-    gridHeigh = Math.ceil(numOfCells * cellWidth * cellHeight / gridWidth);
-    const numOfRows = Math.floor(gridHeigh / cellHeight) || 1;
-    const numOfColls = Math.min(numOfCells, Math.floor(gridWidth / cellWidth));
-   
-    for (let i = 0, row = 0; row < numOfRows; row++) {
-        g_gridData.push( new Array() );
-        for (let column = 0; column < numOfColls; column++, ++i) {
-            g_gridData[row].push({
-                fill: '#' + hash_to_str_map[i].h,
-                x: xpos,
-                y: ypos,
-                title: '   ' + hash_to_str_map[i].s
-            })
-            xpos += cellWidth;
-        }
-        xpos = 1;
-        ypos += cellHeight; 
-    }
-}
-
-function removeLoader() {
-    let message = document.getElementById('message_to_user');
-    message.innerHTML = '';
-}
-
-function drawLoader() {
-    let message = document.getElementById('message_to_user');
-    message.innerHTML = 'Loading...';
+function updateStatus(status_message) {
+    d3.select('#status_message_id').text(status_message);
 }
 
 function setTitle(filename){
@@ -53,24 +19,20 @@ function setTitle(filename){
         .text('Visualizing ' + filename);
 }
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 function draw() {
-    var tooltip = d3.select('body')
+    let tooltip = d3.select('body')
         .append('div')
         .style('position', 'absolute')
         .style('z-index', '10')
         .attr('class', 'tooltip')
 
-    var grid = d3.select('#grid')
+    let grid = d3.select('#grid')
         .append('svg')
-        .attrs({'width' : gridWidth +'px',
-                'height' : (gridHeigh + 10) + 'px'});
+        .attrs({'width' : gGridWidth +'px',
+                'height' : (gGridHeigh + 10) + 'px'});
 
-    var row = grid.selectAll('.row')
-        .data(g_gridData)
+    let row = grid.selectAll('.row')
+        .data(gGridData)
         .enter().append('g')
         .attr('class', 'row');
 
@@ -91,26 +53,58 @@ function draw() {
             .on('mouseout', () => tooltip.style('visibility', 'hidden'));
     }
     var render = renderQueue(internalDraw);
-    render(g_gridData);
+    render(gGridData);
+}
+
+function processInputFile(content) {
+    gGridData = new Array();
+    gGridData.push( new Array() );
+    let numOfColls = Math.floor(gGridWidth / cellWidth);
+    let numOfCells = 0;
+    let xpos = 1; 
+    let ypos = 1;
+    let colNum = 0;
+    let rowNum = 0;
+    content = content.split('\n');
+    for (; numOfCells < content.length; ++numOfCells) {
+        line = content[numOfCells].trim();
+        if ('' === line){
+            continue;
+        }
+        colNum = numOfCells % numOfColls;
+        rowNum = Math.floor(numOfCells / numOfColls);
+        if (0 === colNum && numOfCells !== 0) {
+            gGridData.push( new Array() );
+            xpos = 1;
+            ypos += cellHeight;
+        }
+        gGridData[rowNum].push({
+            fill: '#' + str2color(line).toString(16),
+            x: xpos,
+            y: ypos,
+            title: '   ' + line
+        })
+        xpos += cellWidth;
+    }
+    gGridHeigh = Math.ceil((rowNum + 1) * cellHeight);
 }
 
 function start(file) {
     const reader = new FileReader();
-    drawLoader();
+    
+    var t0 = performance.now()
+    updateStatus('Loading...');
     reader.onload = function(e) {
-        let contents = e.target.result;
-        for (const line of contents.split('\n')){
-            if (line === ''){
-                continue;
-            }
-            let new_item = {'h': str2color(line).toString(16), 's': line};
-            hash_to_str_map.push(new_item);
-        }
-        initGridData();
+        let content = e.target.result;
+        processInputFile(content);
+        t1 = performance.now();
+        console.log('File read in ' + (t1 - t0) + ' milliseconds.');
         setTitle(file.name);
         d3.select('#grid').style('visibility', 'visible');
         draw();
-        removeLoader();
+        t2 = performance.now();
+        console.log('Grid drawn in ' + (t2 - t1) + ' milliseconds.');
+        updateStatus('');
     };
     reader.readAsText(file);
 }
