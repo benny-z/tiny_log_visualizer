@@ -1,49 +1,54 @@
 <html>
-  <head>
+
+<head>
     <link rel="stylesheet" href="style/style.css">
     <link rel="stylesheet" href="style/terminal.css">
     <link rel="stylesheet" href="style/console.css">
-  </head>
-  <body class="terminal">
+</head>
+
+<body class="terminal">
     <div class="container">
-      <div class="terminal-nav">
-        <header class="terminal-logo">
-          <div class="logo terminal-prompt">
-            <a href="https://github.com/benny-z/tiny_log_visualizer" class="no-style site-name">tiny-log-visualizer</a>:~# <span id="message_to_user"></span>
-          </div></header>
-          <nav class="terminal-menu">
-            <ul vocab="https://schema.org/" typeof="BreadcrumbList">
-              <li><a href="./index.html" typeof="ListItem">home/</a></li>
-              <li><a href="https://github.com/benny-z" typeof="ListItem">GitHub/</a></li>
-            </ul>
-          </nav>
+        <div class="terminal-nav">
+            <header class="terminal-logo">
+                <div class="logo terminal-prompt">
+                    <a href="https://github.com/benny-z/tiny_log_visualizer" class="no-style site-name">tiny-log-visualizer</a>:~# <span id="message_to_user"></span>
+                </div>
+            </header>
+            <nav class="terminal-menu">
+                <ul vocab="https://schema.org/" typeof="BreadcrumbList">
+                    <li><a href="./index.html" typeof="ListItem">home/</a></li>
+                    <li><a href="https://github.com/benny-z" typeof="ListItem">GitHub/</a></li>
+                </ul>
+            </nav>
         </div>
-      </div>
-      <div class="container">
+    </div>
+    <div class="container">
         <div id="drop-area">
-          <form class="my-form">
-            <h3>
-              ==============================================
-              <br/>
-              Please upload a log file to visualize
-              <br/>
-              Drag and drop it here, or use the
-              <label class="browse_btn" for="fileElem">browse</label>
-              button
-              <input type="file" id="fileElem" onchange="handleFiles(this.files)">
-              <br/>
-              ==============================================
-            </h3>
-          </form>
+            <form class="my-form">
+                <h3>
+                    ==============================================
+                    <br />
+                    Please upload a log file to visualize
+                    <br />
+                    Drag and drop it here, or use the
+                    <label class="browse_btn" for="fileElem">browse</label>
+                    button
+                    <input type="file" id="fileElem" onchange="handleFiles(this.files)">
+                    <br />
+                    ==============================================
+                </h3>
+            </form>
         </div>
         <div id="file_name" style="visibility: hidden"></div>
         <div id="loader_id" style="visibility: hidden"></div>
-        <div id="grid">
-        </div>
-      </div>
-      <script src="scripts/d3.v4.min.js"></script>
-      <script src="scripts/text_to_color.js" type="text/javascript"></script>
-      <script src="scripts/main.js" type="text/javascript"></script>
-      <script src="scripts/dnd.js" type="text/javascript"></script>
-    </body>
-  </html>
+        <div id="grid" style="visibility: hidden"></div>
+    </div>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="https://d3js.org/d3-selection-multi.v1.min.js"></script>
+    <script src="scripts/text_to_color.js" type="text/javascript"></script>
+    <script src="scripts/dnd.js" type="text/javascript"></script>
+    <script src="scripts/renderQueue.js" type="text/javascript"></script>
+    <script src="scripts/main.js" type="text/javascript"></script>
+</body>
+
+</html>
