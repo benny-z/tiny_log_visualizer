@@ -1,7 +1,6 @@
 // Mainly based on:
 // https://bl.ocks.org/cagrimmett/07f8c8daea00946b9e704e3efcbd5739 (GPL3)
 // and https://www.d3-graph-gallery.com/graph/interactivity_tooltip.html
-const margine_factor = 0.6;
 const cellWidth = 15;
 const cellHeight = 15;
 
@@ -17,20 +16,18 @@ function initGridData() {
     let ypos = 1;
 
     const numOfCells = hash_to_str_map.length;
-    gridHeigh = numOfCells * cellWidth * cellHeight / gridWidth;
-    const numOfRows = Math.floor(gridHeigh / cellHeight);
-    const numOfColls = Math.floor(gridWidth / cellWidth);
+    gridHeigh = Math.ceil(numOfCells * cellWidth * cellHeight / gridWidth);
+    const numOfRows = Math.floor(gridHeigh / cellHeight) || 1;
+    const numOfColls = Math.min(numOfCells, Math.floor(gridWidth / cellWidth));
    
     for (let i = 0, row = 0; row < numOfRows; row++) {
         g_gridData.push( new Array() );
         for (let column = 0; column < numOfColls; column++, ++i) {
             g_gridData[row].push({
-                fill: '#' + (hash_to_str_map[i].h).toString(16),
+                fill: '#' + hash_to_str_map[i].h,
                 x: xpos,
                 y: ypos,
-                // width: cellWidth,
-                // height: cellHeight,
-                title: "   " + hash_to_str_map[i].s
+                title: '   ' + hash_to_str_map[i].s
             })
             xpos += cellWidth;
         }
@@ -40,12 +37,12 @@ function initGridData() {
 }
 
 function removeLoader() {
-    let message = document.getElementById("message_to_user");
+    let message = document.getElementById('message_to_user');
     message.innerHTML = '';
 }
 
 function drawLoader() {
-    let message = document.getElementById("message_to_user");
+    let message = document.getElementById('message_to_user');
     message.innerHTML = 'Loading...';
 }
 
@@ -69,8 +66,8 @@ function draw() {
 
     var grid = d3.select('#grid')
         .append('svg')
-        .attrs({'width' : gridWidth + 'px',
-                'height' : gridHeigh + 'px'});
+        .attrs({'width' : gridWidth +'px',
+                'height' : (gridHeigh + 10) + 'px'});
 
     var row = grid.selectAll('.row')
         .data(g_gridData)
@@ -106,7 +103,7 @@ function start(file) {
             if (line === ''){
                 continue;
             }
-            let new_item = {'h': str2color(line), 's': line};
+            let new_item = {'h': str2color(line).toString(16), 's': line};
             hash_to_str_map.push(new_item);
         }
         initGridData();
