@@ -7,6 +7,16 @@ const cellHeight = 15
 const gGridWidth = d3.select('.container').node().getBoundingClientRect().width;
 var gGridHeigh = 0;
 var gGridData = null;
+var gIdxToLineMap = [];
+
+var gNumOfColls = Math.floor(gGridWidth / cellWidth);
+var gNumOfRows = 0;
+
+var gStartTime = performance.now();
+var gFileReadingDoneTime = -1;
+var gGridGenerationDoneTime = -1;
+
+var xyToLineNum = (x, y) => x + (gNumOfColls * y);
 
 function updateStatus(status_message) {
     d3.select('#status_message_id').text(status_message);
@@ -20,6 +30,7 @@ function setTitle(filename){
 }
 
 function draw() {
+    setTimeout(()=> {
     let tooltip = d3.select('body')
         .append('div')
         .style('position', 'absolute')
@@ -32,8 +43,8 @@ function draw() {
                 'height' : (gGridHeigh + 10) + 'px'});
 
     let row = grid.selectAll('.row')
-        .data(gGridData)
-        .enter().append('g')
+        .enter()
+        .append('g')
         .attr('class', 'row');
 
     function internalDraw(d) {
@@ -42,27 +53,30 @@ function draw() {
             .enter()
             .append('rect')
             .attrs({
-                'class': 'square cell',
-                'x' : (d) => d.x,
-                'y' : (d) => d.y,
-                'title' : (d) => d.title
+                'class': 'square',
+                'x' : (d) => (d.x) * cellHeight,
+                'y' : (d) => (d.y) * cellWidth,
             })
             .style('fill', (d) => d.fill)
-            .on('mouseover', (d) => tooltip.text(d.title).style('visibility', 'visible'))
+            .on('mouseover', (d) => tooltip.text('   ' + gIdxToLineMap[xyToLineNum(d.x, d.y)])
+                       .style('visibility', 'visible'))
             .on('mousemove', () => tooltip.styles({'top' : (d3.event.pageY-10)+'px','left' : (d3.event.pageX+10)+'px'}))
             .on('mouseout', () => tooltip.style('visibility', 'hidden'));
     }
-    var render = renderQueue(internalDraw);
+    let render = renderQueue(internalDraw);
     render(gGridData);
+    delete gGridData;
+    gGridGenerationDoneTime = performance.now();
+    console.log('Grid generated in ' + (gGridGenerationDoneTime - gFileReadingDoneTime) + ' milliseconds.');
+    }, 0);
 }
 
 function processInputFile(content) {
     gGridData = new Array();
     gGridData.push( new Array() );
-    let numOfColls = Math.floor(gGridWidth / cellWidth);
     let numOfCells = 0;
-    let xpos = 1; 
-    let ypos = 1;
+    let xpos = 0; 
+    let ypos = 0;
     let colNum = 0;
     let rowNum = 0;
     content = content.split('\n');
@@ -71,39 +85,39 @@ function processInputFile(content) {
         if ('' === line){
             continue;
         }
-        colNum = numOfCells % numOfColls;
-        rowNum = Math.floor(numOfCells / numOfColls);
+        colNum = numOfCells % gNumOfColls;
+        rowNum = Math.floor(numOfCells / gNumOfColls);
         if (0 === colNum && numOfCells !== 0) {
             gGridData.push( new Array() );
-            xpos = 1;
-            ypos += cellHeight;
+            xpos = 0;
+            ypos += 1;
         }
         gGridData[rowNum].push({
-            fill: '#' + str2color(line).toString(16),
-            x: xpos,
-            y: ypos,
-            title: '   ' + line
-        })
-        xpos += cellWidth;
+            'fill': '#' + str2color(line).toString(16),
+            'x': xpos,
+            'y': ypos,
+        });
+        gIdxToLineMap.push(line);
+        xpos += 1;
     }
-    gGridHeigh = Math.ceil((rowNum + 1) * cellHeight);
+    gNumOfRows = rowNum + 1;
+    gGridHeigh = Math.ceil(gNumOfRows * cellHeight);
 }
+
 
 function start(file) {
     const reader = new FileReader();
-    
-    var t0 = performance.now()
     updateStatus('Loading...');
     reader.onload = function(e) {
         let content = e.target.result;
         processInputFile(content);
-        t1 = performance.now();
-        console.log('File read in ' + (t1 - t0) + ' milliseconds.');
+        // updateStatus('File read...');
+        gFileReadingDoneTime = performance.now();
+        console.log('File read in ' + (gFileReadingDoneTime - gStartTime) + ' milliseconds.');
         setTitle(file.name);
+        delete content;
         d3.select('#grid').style('visibility', 'visible');
         draw();
-        t2 = performance.now();
-        console.log('Grid drawn in ' + (t2 - t1) + ' milliseconds.');
         updateStatus('');
     };
     reader.readAsText(file);
