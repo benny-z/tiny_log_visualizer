@@ -32,10 +32,9 @@ function setTitle(filename){
 function draw() {
     setTimeout(()=> {
     let tooltip = d3.select('body')
-        .append('div')
-        .style('position', 'absolute')
-        .style('z-index', '10')
+        .append('span')
         .attr('class', 'tooltip')
+        .style('visibility', 'visible');
 
     let grid = d3.select('#grid')
         .append('svg')
@@ -56,12 +55,12 @@ function draw() {
                 'class': 'square',
                 'x' : (d) => (d.x) * cellHeight,
                 'y' : (d) => (d.y) * cellWidth,
+                'style' : (d) => 'fill:' + d.fill
             })
-            .style('fill', (d) => d.fill)
             .on('mouseover', (d) => tooltip.text('   ' + gIdxToLineMap[xyToLineNum(d.x, d.y)])
-                       .style('visibility', 'visible'))
+                       .style('opacity', 0.8))
             .on('mousemove', () => tooltip.styles({'top' : (d3.event.pageY-10)+'px','left' : (d3.event.pageX+10)+'px'}))
-            .on('mouseout', () => tooltip.style('visibility', 'hidden'));
+            .on('mouseout', () => tooltip.style('opacity', 0));
     }
     let render = renderQueue(internalDraw);
     render(gGridData);
@@ -74,15 +73,18 @@ function draw() {
 function processInputFile(content) {
     gGridData = new Array();
     gGridData.push( new Array() );
+    // We need both numOfCells & lineNum because we do not add empty lines to the canvas
     let numOfCells = 0;
+    let lineNum = 0;
     let xpos = 0; 
     let ypos = 0;
     let colNum = 0;
     let rowNum = 0;
     content = content.split('\n');
-    for (; numOfCells < content.length; ++numOfCells) {
-        line = content[numOfCells].trim();
+    while (lineNum < content.length) {
+        line = content[lineNum].trim();
         if ('' === line){
+            ++lineNum;
             continue;
         }
         colNum = numOfCells % gNumOfColls;
@@ -97,8 +99,10 @@ function processInputFile(content) {
             'x': xpos,
             'y': ypos,
         });
-        gIdxToLineMap.push(line);
+        gIdxToLineMap.push((lineNum+1) + ': ' + line);
         xpos += 1;
+        ++numOfCells;
+        ++lineNum;
     }
     gNumOfRows = rowNum + 1;
     gGridHeigh = Math.ceil(gNumOfRows * cellHeight);
