@@ -1,4 +1,5 @@
 var config = {
-    'renderRate' : 1, 
+    'initRenderRate' : 1, 
+    'maxRenderRate'  : 100, 
     'delayMillisecs' : 17
 };

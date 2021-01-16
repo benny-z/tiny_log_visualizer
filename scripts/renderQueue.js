@@ -1,7 +1,7 @@
 // source: http://bl.ocks.org/syntagmatic/3341641
 var renderQueue = (function(func) {
-  let _queue = [];               // data to be rendered
-  let _rate = config.renderRate; // number of calls per frame
+  let _queue = [];
+  let _rate = config.initRenderRate;
   let _valid = true;
 
   let rq = function(data) {
@@ -14,12 +14,13 @@ var renderQueue = (function(func) {
     _valid = true;
     function doFrame() {
       if (!_valid) return true;
-      let chunk = _queue.splice(0,_rate);
-      if (0 === chunk.length) {
+      if (0 === _queue.length) {
         _valid = false;
+        return true;
       }
+      let chunk = _queue.splice(0,_rate);
       chunk.map(func);
-      ++_rate;
+      _rate < config.maxRenderRate  && ++_rate;
       timer_frame(doFrame);
     }
 
