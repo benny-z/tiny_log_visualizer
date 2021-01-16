@@ -1,20 +1,13 @@
-// source: https://github.com/darkskyapp/string-hash
+// source: https://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript/22429679
 function hash(str) {
-  let hash = 5381;
-  let i = str.length;
-  while(i) {
-    hash = (hash * 33) ^ str.charCodeAt(--i);
-  }
-  /* JavaScript does bitwise operations (like XOR, above) on 32-bit signed
-   * integers. Since we want the results to be always positive, convert the
-   * signed int to an unsigned by doing an unsigned bitshift. */
-  return hash >>> 0;
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash  = ((hash << 5) - hash) + str.charCodeAt(i);
+      hash |= 0;
+    }
+    return hash >>> 0; // making sure it's a 32 bit number
 }
 
 function str2color(input_str){
-	let str = input_str;
-  if (input_str.length < 5) {
-    str += 37 * hash(str);
-  }
-  return hash(str);
+  return hash(input_str);
 }
