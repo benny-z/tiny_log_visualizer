@@ -60,7 +60,9 @@ function draw() {
             .on('mouseover', (d) => tooltip.text('   ' + gIdxToLineMap[xyToLineNum(d.x, d.y)])
                        .style('opacity', 0.8))
             .on('mousemove', () => tooltip.styles({'top' : (d3.event.pageY-10)+'px','left' : (d3.event.pageX+10)+'px'}))
-            .on('mouseout', () => tooltip.style('opacity', 0));
+            .on('mouseout', () => tooltip.style('opacity', 0))
+            .on("dblclick", (d) => 
+                navigator.clipboard.writeText(gIdxToLineMap[xyToLineNum(d.x, d.y)]));
     }
     let render = renderQueue(internalDraw);
     render(gGridData);
@@ -108,14 +110,12 @@ function processInputFile(content) {
     gGridHeigh = Math.ceil(gNumOfRows * cellHeight);
 }
 
-
 function start(file) {
     const reader = new FileReader();
     updateStatus('Loading...');
     reader.onload = function(e) {
         let content = e.target.result;
         processInputFile(content);
-        // updateStatus('File read...');
         gFileReadingDoneTime = performance.now();
         console.log('File read in ' + (gFileReadingDoneTime - gStartTime) + ' milliseconds.');
         setTitle(file.name);
