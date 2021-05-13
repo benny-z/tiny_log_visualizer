@@ -9,5 +9,5 @@ function hash(str) {
 }
 
 function str2color(input_str){
-  return hash(input_str);
+  return hash(input_str) & 0xffffff;
 }
